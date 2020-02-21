@@ -130,6 +130,7 @@ function distance(x1, y1, x2, y2) {
 
 
 var deg1 = Math.PI * 2 / 360;
+var maxRadius = 25;
 
 function Particle(x, y, radius, maxPathRadius, color) {
   var _this = this;
@@ -137,22 +138,22 @@ function Particle(x, y, radius, maxPathRadius, color) {
   this.x = x;
   this.y = y;
   this.radius = radius;
-  this.maxPathRadius = randomIntFromRange(40, maxPathRadius);
+  this.maxPathRadius = randomIntFromRange(250, maxPathRadius);
   this.color = color;
   this.radians = Math.random() * Math.PI * 2; // to make particles start from any point in circle
 
-  this.velocity = 3;
+  this.velocity = 0.1;
   this.lastMouse = {
     x: x,
     y: y
   };
+  this.minRadius = radius;
 
   this.draw = function (lastLocation) {
     c.beginPath();
+    c.arc(lastLocation.x, lastLocation.y, _this.radius, 0, Math.PI * 2, false);
     c.strokeStyle = _this.color;
-    c.lineWidth = _this.radius;
-    c.moveTo(lastLocation.x, lastLocation.y);
-    c.lineTo(_this.x, _this.y);
+    c.lineWidth = 4;
     c.stroke();
     c.closePath();
   };
@@ -163,14 +164,27 @@ function Particle(x, y, radius, maxPathRadius, color) {
       x: _this.x,
       y: _this.y
     }; // Move the point over time
+    // this.radians += deg1 * this.velocity;
+    // distance between the center of the Particle and mouse position 
 
-    _this.radians += deg1 * _this.velocity; // To Create Drag Effect
+    var dist = distance(mouse.x, mouse.y, _this.x, _this.y);
 
-    _this.lastMouse.x += (mouse.x - _this.lastMouse.x) * 0.05;
-    _this.lastMouse.y += (mouse.y - _this.lastMouse.y) * 0.05; // Circular Motion
+    if (dist < _this.radius) {
+      _this.draw(lastLocation);
 
-    _this.x = _this.lastMouse.x + _this.maxPathRadius * Math.cos(_this.radians);
-    _this.y = _this.lastMouse.y + _this.maxPathRadius * Math.sin(_this.radians);
+      return;
+    } else if (dist < _this.radius + 100) {
+      if (_this.radius < maxRadius) {
+        _this.radius += 1; // this.radius = Math.max((this.minRadius+50)*this.minRadius/dist,this.minRadius);
+      }
+    } else if (_this.radius > _this.minRadius) {
+      _this.radius -= 1;
+    } // Circular Motion
+
+
+    _this.radians += deg1 * _this.velocity;
+    _this.x = x + _this.maxPathRadius * Math.cos(_this.radians);
+    _this.y = y + _this.maxPathRadius * Math.sin(_this.radians);
 
     _this.draw(lastLocation);
   };
@@ -178,14 +192,15 @@ function Particle(x, y, radius, maxPathRadius, color) {
 
 
 var particles;
+radiusTypes = [5, 15];
 var numParticles = 50;
 
 function init() {
   particles = [];
 
   for (var i = 0; i < numParticles; i++) {
-    var radius = Math.floor(Math.random() * 4) + 2;
-    particles.push(new Particle(canvas.width / 2, canvas.height / 2, radius, 100, randomColor(colors)));
+    var radius = radiusTypes[Math.floor(Math.random() * 1.9)];
+    particles.push(new Particle(canvas.width / 2, canvas.height / 2, radius, 450, randomColor(colors)));
   }
 
   console.log(particles);
@@ -193,9 +208,10 @@ function init() {
 
 
 function animate() {
-  requestAnimationFrame(animate);
-  c.fillStyle = "rgba(255,255,255,0.05)";
+  requestAnimationFrame(animate); // c.fillStyle = "rgba(255,255,255,0.05)";
+
   c.fillRect(0, 0, canvas.width, canvas.height);
+  c.fillStyle = "white";
   particles.forEach(function (particle) {
     particle.update();
   });
