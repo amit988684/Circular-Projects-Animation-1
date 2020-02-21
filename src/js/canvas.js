@@ -53,11 +53,12 @@ function Particle(x, y, radius, maxPathRadius, color) {
   this.color = color;
 
   this.radians = Math.random() * Math.PI * 2; // to make particles start from any point in circle
-  this.velocity = 5;
+  this.velocity = 3;
   this.lastMouse = {
-    x:x,y:y
+    x: x,
+    y: y
   };
-  
+
   this.draw = lastLocation => {
     c.beginPath();
     c.strokeStyle = this.color;
@@ -74,12 +75,12 @@ function Particle(x, y, radius, maxPathRadius, color) {
 
     // Move the point over time
     this.radians += deg1 * this.velocity;
-    
-    // To Create Drag Effect
-      this.lastMouse.x += (mouse.x - this.lastMouse.x)*0.05;
-      this.lastMouse.y += (mouse.y - this.lastMouse.y)*0.05;
 
-    // Circular Motion 
+    // To Create Drag Effect
+    this.lastMouse.x += (mouse.x - this.lastMouse.x) * 0.05;
+    this.lastMouse.y += (mouse.y - this.lastMouse.y) * 0.05;
+
+    // Circular Motion
     this.x = this.lastMouse.x + this.maxPathRadius * Math.cos(this.radians);
     this.y = this.lastMouse.y + this.maxPathRadius * Math.sin(this.radians);
 
@@ -96,7 +97,13 @@ function init() {
   for (let i = 0; i < numParticles; i++) {
     const radius = Math.floor(Math.random() * 4) + 2;
     particles.push(
-      new Particle(canvas.width / 2, canvas.height / 2, radius, 100,randomColor(colors))
+      new Particle(
+        canvas.width / 2,
+        canvas.height / 2,
+        radius,
+        100,
+        randomColor(colors)
+      )
     );
   }
   console.log(particles);

@@ -141,7 +141,7 @@ function Particle(x, y, radius, maxPathRadius, color) {
   this.color = color;
   this.radians = Math.random() * Math.PI * 2; // to make particles start from any point in circle
 
-  this.velocity = 5;
+  this.velocity = 3;
   this.lastMouse = {
     x: x,
     y: y
@@ -167,7 +167,7 @@ function Particle(x, y, radius, maxPathRadius, color) {
     _this.radians += deg1 * _this.velocity; // To Create Drag Effect
 
     _this.lastMouse.x += (mouse.x - _this.lastMouse.x) * 0.05;
-    _this.lastMouse.y += (mouse.y - _this.lastMouse.y) * 0.05; // Circular Motion 
+    _this.lastMouse.y += (mouse.y - _this.lastMouse.y) * 0.05; // Circular Motion
 
     _this.x = _this.lastMouse.x + _this.maxPathRadius * Math.cos(_this.radians);
     _this.y = _this.lastMouse.y + _this.maxPathRadius * Math.sin(_this.radians);
