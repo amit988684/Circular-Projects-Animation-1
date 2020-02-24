@@ -102,7 +102,11 @@ var mouse = {
   x: innerWidth / 2,
   y: innerHeight / 2
 };
-var colors = ["#ee8572", "#35495e", "#347474", "#63b7af"]; // Event Listeners
+var clickLocation = {
+  x: undefined,
+  y: undefined
+};
+var colors = ["rgb(196, 19, 90)", "rgb(33, 8, 51)", "rgb(143, 216, 173)", "rgb(250, 193, 156)", "rgb(175, 97, 54)"]; // Event Listeners
 
 addEventListener("mousemove", function (event) {
   mouse.x = event.clientX;
@@ -112,6 +116,10 @@ addEventListener("resize", function () {
   canvas.width = innerWidth;
   canvas.height = innerHeight;
   init();
+});
+addEventListener("click", function (event) {
+  clickLocation.x = event.x;
+  clickLocation.y = event.y; // console.log(event.x,event.y);
 }); // Utility Functions
 
 function randomIntFromRange(min, max) {
@@ -126,6 +134,12 @@ function distance(x1, y1, x2, y2) {
   var xDist = x2 - x1;
   var yDist = y2 - y1;
   return Math.sqrt(Math.pow(xDist, 2) + Math.pow(yDist, 2));
+}
+
+function pointInCircle(point, circleCenter, radius) {
+  if (point.x == undefined || point.y == undefined) return false;
+  var dist = distance(point.x, point.y, circleCenter[0], circleCenter[1]);
+  return dist < radius ? true : false;
 } // Objects
 
 
@@ -152,20 +166,22 @@ function Particle(x, y, radius, maxPathRadius, color) {
   this.draw = function (lastLocation) {
     c.beginPath();
     c.arc(lastLocation.x, lastLocation.y, _this.radius, 0, Math.PI * 2, false);
-    c.strokeStyle = _this.color;
+    c.fillStyle = _this.color;
+    c.fill();
     c.lineWidth = 4;
-    c.stroke();
-    c.closePath();
+    c.strokeStyle = "rgba(0,0,0,0.5)";
+    c.stroke(); // c.fillStyle=this.color;
+    // c.fill();
   };
 
-  this.update = function () {
+  this.update = function (array, index) {
     // previous frame x,y location :
     var lastLocation = {
       x: _this.x,
       y: _this.y
     }; // Move the point over time
     // this.radians += deg1 * this.velocity;
-    // distance between the center of the Particle and mouse position 
+    // distance between the center of the Particle and mouse position
 
     var dist = distance(mouse.x, mouse.y, _this.x, _this.y);
 
@@ -175,16 +191,21 @@ function Particle(x, y, radius, maxPathRadius, color) {
       return;
     } else if (dist < _this.radius + 100) {
       if (_this.radius < maxRadius) {
-        _this.radius += 1; // this.radius = Math.max((this.minRadius+50)*this.minRadius/dist,this.minRadius);
+        _this.radius += 0.5; // this.radius = Math.max((this.minRadius+50)*this.minRadius/dist,this.minRadius);
       }
     } else if (_this.radius > _this.minRadius) {
-      _this.radius -= 1;
+      _this.radius -= 0.5;
     } // Circular Motion
 
 
     _this.radians += deg1 * _this.velocity;
     _this.x = x + _this.maxPathRadius * Math.cos(_this.radians);
-    _this.y = y + _this.maxPathRadius * Math.sin(_this.radians);
+    _this.y = y + _this.maxPathRadius * Math.sin(_this.radians); // Interactivty
+    // if (pointInCircle(clickLocation, lastLocation, this.radius)) {
+    //   array.pop(index);
+    //   console.log("removed 1 node");
+    //   return;
+    // }
 
     _this.draw(lastLocation);
   };
@@ -200,7 +221,7 @@ function init() {
 
   for (var i = 0; i < numParticles; i++) {
     var radius = radiusTypes[Math.floor(Math.random() * 1.9)];
-    particles.push(new Particle(canvas.width / 2, canvas.height / 2, radius, 450, randomColor(colors)));
+    particles.push(new Particle(canvas.width / 2, canvas.height / 2, radius, 400, randomColor(colors)));
   }
 
   console.log(particles);
@@ -210,10 +231,19 @@ function init() {
 function animate() {
   requestAnimationFrame(animate); // c.fillStyle = "rgba(255,255,255,0.05)";
 
-  c.fillRect(0, 0, canvas.width, canvas.height);
   c.fillStyle = "white";
+  c.fillRect(0, 0, canvas.width, canvas.height); // for (let i = 0; i < particles.length; i++) {
+  //   if(pointInCircle(clickLocation,[particles[i].x,particles[i].y],particles[i].radius))
+  //   {
+  //     clickLocation.x = undefined;
+  //     clickLocation.y = undefined;
+  //   }
+  //   particles[i].update(particles, i);
+  // }
+
   particles.forEach(function (particle) {
-    particle.update();
+    // console.log(particle.x);
+    particle.update(particles, particle);
   });
 }
 

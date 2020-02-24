@@ -11,7 +11,17 @@ const mouse = {
   y: innerHeight / 2
 };
 
-const colors = ["#ee8572", "#35495e", "#347474", "#63b7af"];
+const clickLocation = {
+  x: undefined,
+  y: undefined
+};
+const colors = [
+  "rgb(196, 19, 90)",
+  "rgb(33, 8, 51)",
+  "rgb(143, 216, 173)",
+  "rgb(250, 193, 156)",
+  "rgb(175, 97, 54)"
+];
 
 // Event Listeners
 addEventListener("mousemove", event => {
@@ -24,6 +34,12 @@ addEventListener("resize", () => {
   canvas.height = innerHeight;
 
   init();
+});
+
+addEventListener("click", event => {
+  clickLocation.x = event.x;
+  clickLocation.y = event.y;
+  // console.log(event.x,event.y);
 });
 
 // Utility Functions
@@ -40,6 +56,12 @@ function distance(x1, y1, x2, y2) {
   const yDist = y2 - y1;
 
   return Math.sqrt(Math.pow(xDist, 2) + Math.pow(yDist, 2));
+}
+
+function pointInCircle(point, circleCenter, radius) {
+  if (point.x == undefined || point.y == undefined) return false;
+  const dist = distance(point.x, point.y, circleCenter[0], circleCenter[1]);
+  return dist < radius ? true : false;
 }
 
 // Objects
@@ -63,44 +85,55 @@ function Particle(x, y, radius, maxPathRadius, color) {
   this.draw = lastLocation => {
     c.beginPath();
     c.arc(lastLocation.x, lastLocation.y, this.radius, 0, Math.PI * 2, false);
-    c.strokeStyle = this.color;
+    c.fillStyle = this.color;
+    c.fill();
     c.lineWidth = 4;
+    c.strokeStyle = "rgba(0,0,0,0.5)";
     c.stroke();
-    c.closePath();
+    // c.fillStyle=this.color;
+    // c.fill();
   };
 
-  this.update = () => {
+  this.update = (array,index) => {
     // previous frame x,y location :
     const lastLocation = { x: this.x, y: this.y };
 
     // Move the point over time
     // this.radians += deg1 * this.velocity;
 
-    // distance between the center of the Particle and mouse position 
+    // distance between the center of the Particle and mouse position
     var dist = distance(mouse.x, mouse.y, this.x, this.y);
-    
-    if(dist<this.radius){
+
+    if (dist < this.radius) {
       this.draw(lastLocation);
       return;
-    }
-    else if (dist < this.radius + 100) {
+    } else if (dist < this.radius + 100) {
       if (this.radius < maxRadius) {
-          this.radius+=1
+        this.radius += 0.5;
         // this.radius = Math.max((this.minRadius+50)*this.minRadius/dist,this.minRadius);
       }
     } else if (this.radius > this.minRadius) {
-      this.radius -= 1;
+      this.radius -= 0.5;
     }
     // Circular Motion
     this.radians += deg1 * this.velocity;
     this.x = x + this.maxPathRadius * Math.cos(this.radians);
     this.y = y + this.maxPathRadius * Math.sin(this.radians);
+
+    // Interactivty
+
+    // if (pointInCircle(clickLocation, lastLocation, this.radius)) {
+    //   array.pop(index);
+    //   console.log("removed 1 node");
+    //   return;
+    // }
+
     this.draw(lastLocation);
   };
 }
 
 // Implementation
-let particles;
+var particles;
 radiusTypes = [5, 15];
 let numParticles = 50;
 function init() {
@@ -113,7 +146,7 @@ function init() {
         canvas.width / 2,
         canvas.height / 2,
         radius,
-        450,
+        400,
         randomColor(colors)
       )
     );
@@ -125,10 +158,23 @@ function init() {
 function animate() {
   requestAnimationFrame(animate);
   // c.fillStyle = "rgba(255,255,255,0.05)";
-  c.fillRect(0, 0, canvas.width, canvas.height);
   c.fillStyle = "white";
+  c.fillRect(0, 0, canvas.width, canvas.height);
+
+  // for (let i = 0; i < particles.length; i++) {
+  //   if(pointInCircle(clickLocation,[particles[i].x,particles[i].y],particles[i].radius))
+  //   {
+  //     clickLocation.x = undefined;
+  //     clickLocation.y = undefined;
+  //   }
+  
+  //   particles[i].update(particles, i);
+    
+  // }
+  
   particles.forEach(particle => {
-    particle.update();
+    // console.log(particle.x);
+    particle.update(particles,particle);
   });
 }
 
